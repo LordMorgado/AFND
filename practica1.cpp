@@ -1,42 +1,18 @@
 #include <iostream>
+#include "automata.h"
+#include "estado.h"
+#include "transicion.h"
 #include <vector> // http://www.cplusplus.com/reference/vector/vector/ (documentación de librería) 
 using namespace std;
-
-class Estado;
-
-class Transicion {
-    char simbolo;
-    Estado estadoDestino;
-  public:
-        Transicion(char s, Estado ed);
-};
-
-class Estado {
-    int _id;
-    vector<Transicion> transiciones;
-    public:
-        Estado (int id);
-};
-
-class AFN {
-    Estado EdoInicial;
-    vector<Estado> EdosAceptacion;
-    vector<char> Alfabeto;
-    vector<Estado> EdosAFN;
-    public:
-        AFN();
-        AFN(char simbolo);
-};
 /**
-    Constructores de clase AFN
+    Constructores de clase Automata
 */
-AFN::AFN(){
-    this.EdoInicial = NULL;
-    this.Alfabeto.clear();
-    this.EdosAceptacion.clear();
-    this.EdosAFN.clear();
+Automata::Automata(){
+    Alfabeto.clear();
+    EdosAceptacion.clear();
+    EdosAFN.clear();
 }
-AFN::AFN(char simbolo){
+Automata::Automata(char simbolo){
     Estado estadoAceptacion;
     EdoInicial = new Estado(0);
     Alfabeto.clear();
@@ -66,4 +42,6 @@ Transicion::Transicion(char s, Estado ed){
     estadoDestino = ed;
 }
 
-
+main() {
+	return 0;
+}
