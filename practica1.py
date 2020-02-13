@@ -12,8 +12,6 @@ def dibujaAutomata(afnd):
         f.node(str(estado.id))
         for trs in estado.transiciones:
             f.edge(str(estado.id), str(trs.estadoDestino.id), label=trs.simbolo)
-
-
     f.view()
 
 class Transicion:
@@ -33,7 +31,7 @@ class Estado:
         self.aceptacion = False
         
     def acepta(self):
-        self.aceptacion = True
+        self.aceptacion = not self.aceptacion
 
 class Automata:
     def __init__(self, simbolo=None):
@@ -41,17 +39,40 @@ class Automata:
         self.edosAutomata = []
         if simbolo is None:
             self.edoInicial = Estado()
-            self.alfabeto = ["epsi"]
+            self.alfabeto = ["ε"]
         else:
-            self.alfabeto = ["epsi", simbolo]
+            self.alfabeto = ["ε", simbolo]
             self.edoInicial = Estado()
             estadoAceptacion = Estado()
             estadoAceptacion.acepta()
             self.edosceptacion.append(estadoAceptacion)
             self.edosAutomata = [self.edoInicial, estadoAceptacion]
             self.edoInicial.transiciones.append(Transicion(simbolo, estadoAceptacion))
+	def unirAutomata(self, automata):
+    	e1 = Estado()
+    	e2 = Estado()
+    	e1.transiciones.append(Transicion("ε", self.edoInicial))
+    	e1.transiciones.append(Transicion("ε", automata.edoInicial))
+    	for estTran in self.edosceptacion:
+    		estTran.transiciones.append(Transicion("ε", e2))
+    		estTran.acepta()
 
-def cerraduraE (e: Estado):
+    	for estTran2 in automata.edosceptacion:
+    		estTran2.transiciones.append(Transicion("ε", e2))
+    		estTran2.acepta()
+    	e2.acepta()
+
+    	self.alfabeto = list(set(self.alfabeto) | set(automata.alfabeto) )
+    	self.edosAutomata = list(set(self.edosAutomata) | set(automata.edosAutomata) )
+    	self.edosAutomata.append(e1)
+    	self.edosAutomata.append(e2)
+    	self.edosceptacion = []
+    	self.edosceptacion.append(e2)
+    	self.edoInicial = e1
+    	automata = None
+    	return self
+
+def cerraduraE (self, e: Estado):   
     R = []
     pila = []
     pila.append(e)
@@ -72,7 +93,30 @@ def cerraduraEestados(conjunto):
         R = list(set(R) | set(cerraduraE(e)))
     return R
 
+ans = True
+automatas = []
+while ans:
+    print("""
+    1.crear automata
+    2.unir automata
+    3.cerradura epsilon
+    4.Exit/Quit
+    """)
+    ans = input("elige una opción ")
+    if ans=="1":
+        print("\nintroduce simbolo: ")
+        simboloNuevoAlfabeto = input()
+        automatas.append(Automata(simboloNuevoAlfabeto))
+    elif ans=="2":
+        print("\n Unir automatas")
+        for 
+    elif ans=="3":
+        print("\n Student Record Found")
+    elif ans=="4":
+        print("\n Adios")
+        ans = None
+    else:
+        print("\n Esa no es una opción")
 
 
-auto = Automata("a")
-dibujaAutomata(auto)
+dibujaAutomata(automatas.pop())
