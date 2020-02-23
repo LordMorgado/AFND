@@ -2,7 +2,6 @@ from os import system
 from graphviz import Digraph
 
 def dibujaAutomata(afnd):
-    
     f = Digraph('finite_state_machine', filename='afnd.gv')
     f.attr(rankdir='LR', size='5,5')
     f.attr('node', shape='doublecircle')
@@ -11,24 +10,36 @@ def dibujaAutomata(afnd):
     
     f.attr('node', shape='circle')
     afnd.edosAutomata.sort(key=lambda x: x.id, reverse=False)
+
     for estado in afnd.edosAutomata:
         for trs in estado.transiciones:
             f.edge(str(estado.id), str(trs.estadoDestino.id), label=trs.simbolo)
     f.view()
 
 class Transicion:
-    def __init__(self, simbolo: str, estadoDestino):
-        self.simbolo = simbolo
-        self.estadoDestino = estadoDestino
+    def __init__(self, simbolo=None, estadoDestino=None):
+        if simbolo is None:
+            self.simbolo = None
+        else:
+            self.simbolo = simbolo
+        
+        if estadoDestino is None:
+            self.estadoDestino = None
+        else:
+            self.estadoDestino = estadoDestino
 
 class Estado:
     _id = 0
-    def __init__(self, transiciones=None):
+    def __init__(self, transiciones=None, simboloAFD=None):
         self.id = Estado._id
         if transiciones is None:
             self.transiciones = []
         else:
             self.transiciones = transiciones
+        if simboloAFD is None:
+            self.simboloAFD = ""
+        else:
+            self.simboloAFD = simboloAFD
         Estado._id = Estado._id + 1
         self.aceptacion = False
         
@@ -45,6 +56,7 @@ class Automata:
         self.kleene = False
         self.positiva = False
         self.signo = False
+        self.afd = False
         if simbolo is None:
             self.edoInicial = Estado()
             self.alfabeto = ["ε"]
@@ -142,7 +154,16 @@ class Automata:
                 self.edoInicial.transiciones.append(Transicion("ε", e))
             self.signo = True
 
-def cerraduraE (self, e: Estado):
+
+def mover(conjunto, simbolo):
+    R = []
+    for e in conjunto:
+        for t in e.transiciones:
+            if t.simbolo == simbolo:
+                R.append(t.estadoDestino)
+    return R
+
+def cerraduraE (e: Estado):
     R = []
     pila = []
     pila.append(e)
@@ -152,7 +173,7 @@ def cerraduraE (self, e: Estado):
             continue
         R.append(e2)
         for trn in e2.transiciones:
-            if trn.simbolo == "epsi":
+            if trn.simbolo == "ε":
                 if not (trn.estadoDestino in R):
                     pila.append(trn.estadoDestino)
     return R
@@ -162,6 +183,65 @@ def cerraduraEestados(conjunto):
     for e in conjunto:
         R = list(set(R) | set(cerraduraE(e)))
     return R
+
+def goTo (stados, simbolo):
+        return cerraduraEestados(mover(stados, simbolo));
+
+def afnToafd(afn: Automata):
+
+    afd = Automata()
+    estadoInicial = Estado()
+    estadoInicial.id = 0
+    Sn = [] #new Set<State>();
+    estadoAProcesar = [] #new Set<State>();
+    conjuntoA = [] #new Set<Set<State>>(); //Es un conjunto de conjuntos de conjuntoA
+    conjuntoAAFD = []#new Set<State>(); //Contendra conjuntoA numerados de 0 a n
+    transicion = Transicion()
+    state =  Estado()
+
+    queueA = []
+    conjuntoA.clear()
+
+    afd.alfabeto = afn.alfabeto # Se copia el alfabeto del AFN al AFD
+    afd.alfabeto.remove("ε") # Elimina Epsilon del alfabeto perteneciente al AFD
+    Sn = cerraduraE(afn.edoInicial) # Se calcula la cerradura epsilon del estado inicial y se guarda en Sn
+    for s in Sn:
+        if s in afn.edosceptacion:
+            estadoInicial.acepta()
+            afd.edosceptacion.append(estadoInicial)
+            break
+    queueA.append(Sn)
+    conjuntoA.append(Sn)
+    afd.edosAutomata.append(estadoInicial) # Agrega el inicial
+    afd.edoInicial = estadoInicial
+
+    
+
+        
+    while len(queueA) != 0:
+        estadoAProcesar = queueA[0] # quita de cola
+        for simb in afd.alfabeto:
+            Sn = goTo(estadoAProcesar, simb) # representa la S
+            if not (Sn in conjuntoA) and Sn != []: # Si no exisitia este subconjunto de conjuntoA va a conformar un nuevo estado del AFD con su transicion
+                state = Estado()
+                queueA.append(Sn) # se va a analizar el siguiente
+                conjuntoA.append(Sn)
+                transicion = Transicion(simb, state)
+                for estadosDeSn in Sn:
+                    if estadosDeSn in afn.edosceptacion: #Si el conjunto contiene al menos un estado de aceptacion
+                        state.acepta()
+                        afd.edosceptacion.append(state)
+                        break
+
+                afd.edosAutomata[conjuntoA.index(estadoAProcesar)].transiciones.append(transicion)
+                afd.edosAutomata.append(state)
+            elif Sn != []:
+                transicion = Transicion(simb, afd.edosAutomata[conjuntoA.index(Sn)])
+                afd.edosAutomata[conjuntoA.index(estadoAProcesar)].transiciones.append(transicion)
+
+        queueA.pop(0)
+    
+    return afd
 
 ans = True
 automatas = []
@@ -175,7 +255,8 @@ while ans:
     5.cerradura de Kleene de un autómata
     6.cerradura signo '?'
     7.dibuja autómata
-    8.Exit/Quit
+    8.pasar a AFD
+    9.Exit/Quit
     """)
     ans = input("elige una opción ")
 
@@ -273,10 +354,19 @@ while ans:
                 print("Opción no son válida")
 
     elif ans=="8":
+        for i in range(0,len(automatas)):
+            print("automata " + str(i+1) + " = " + str(automatas[i].alfabeto))
+
+        while True:
+            opc1 = int(input())
+            if opc1 in range(1,len(automatas)+1):
+                automatas[opc1-1] = afnToafd(automatas[opc1-1])
+                break
+            else:
+                print("Opción no son válida")
+
+    elif ans=="9":
         print("\n Adios")
         ans = None
     else:
         print("\n Esa no es una opción")
-
-
-dibujaAutomata(automatas[0])
