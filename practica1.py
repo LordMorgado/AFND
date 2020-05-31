@@ -164,7 +164,7 @@ while ans:
             if opc1 in range(1,len(automatas)+1):
                 automatas[opc1-1].tablaDeTransiciones()
                 cadena = input("Introduce la cadena a analizar: ")
-                LexicAnalyzer(automatas[opc1-1], cadena).getToken()
+                LexicAnalyzer(automatas[opc1-1], cadena)
                 s = input("esperando...")
                 break
             else:
@@ -198,6 +198,7 @@ while ans:
                 break
             else:
                 print("Opción no son válida")
+    
     elif ans=="12":
         print("\n Adeu")
         ans = None
